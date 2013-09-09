@@ -2,7 +2,6 @@ package myBeans;
 
 import GP_Utils.ADFUtils;
 
-import java.util.Map;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
@@ -11,20 +10,17 @@ import javax.faces.event.ValueChangeEvent;
 
 import oracle.adf.model.BindingContext;
 import oracle.adf.model.binding.DCBindingContainer;
-import oracle.adf.model.binding.DCControlBinding;
-import oracle.adf.model.binding.DCIteratorBinding;
-import oracle.adf.view.rich.component.rich.nav.RichCommandToolbarButton;
+
 
 import oracle.binding.AttributeBinding;
 import oracle.binding.BindingContainer;
 import oracle.binding.OperationBinding;
 
-import oracle.bpel.services.workflow.worklist.adf.InvokeActionBean;
 
 import oracle.jbo.Row;
 import oracle.jbo.ViewObject;
 import oracle.jbo.server.ApplicationModuleImpl;
-import oracle.jbo.uicli.binding.JUCtrlListBinding;
+
 /**
  * Classe que suporta as diversas funcionalidades da pagina da Human Task Gestão Cursos
  */
@@ -196,12 +192,21 @@ public class GC_Helper {
     */
 
     public void Editar_Curso() {
-       /*  this.Editar_Curso_1(); */
+        /*  this.Editar_Curso_1(); */
     }
 
+    /**
+     * Metodo que vai proporcionar a criação de um novo curso, invoca a criação de cursos do XSD, mapeado na pagina
+     * Atribui um novo IDCurso e torna visivel a secção de criação do cabeçalho de um curso
+     */
     public void Novo_Curso() {
         DCBindingContainer bindings = (DCBindingContainer)BindingContext.getCurrent().getCurrentBindingsEntry();
         OperationBinding XML_CI = bindings.getOperationBinding("CreateInsert_XMLCursos");
+        OperationBinding CursoSeq = bindings.getOperationBinding("getCursoSeq");
+        AttributeBinding XML_CursoID = (AttributeBinding)bindings.getControlBinding("IdCurso1");
+        Number CursoID = (Number)CursoSeq.getResult();
+        this.setC_Id_Curso(CursoID.toString());
+        XML_CursoID.setInputValue(CursoID);
         XML_CI.execute();
         this.makeVisible();
     }
@@ -209,7 +214,7 @@ public class GC_Helper {
     /**
      * 1ª versão do editar Curso (dá Null pointer)
      */
-   /*  private void Editar_Curso_1() {
+    /*  private void Editar_Curso_1() {
         BindingContainer bc = this.getBindings();
         DCBindingContainer bindings = (DCBindingContainer)BindingContext.getCurrent().getCurrentBindingsEntry();
         DCIteratorBinding ListaCursos_Iter = bindings.findIteratorBinding("Lista_CursosIterator");
@@ -229,7 +234,7 @@ public class GC_Helper {
     /**
      * 2ª versão do Editar Curso (Tentar usar o CreateInsert Mapeado nas Bindings da Pagina)
      **/
-/*     private void Editar_Curso_2() {
+    /*     private void Editar_Curso_2() {
         BindingContainer bc = this.getBindings();
         DCBindingContainer bindings = (DCBindingContainer)BindingContext.getCurrent().getCurrentBindingsEntry();
         DCIteratorBinding ListaCursos_Iter = bindings.findIteratorBinding("Lista_CursosIterator");
@@ -267,7 +272,7 @@ public class GC_Helper {
         action.execute();
     } */
 
-   /*  public void Nova_Versao() {
+    /*  public void Nova_Versao() {
         BindingContainer bc = this.getBindings();
         DCBindingContainer bindings = (DCBindingContainer)BindingContext.getCurrent().getCurrentBindingsEntry();
         DCIteratorBinding ListaCursos_Iter = bindings.findIteratorBinding("Lista_CursosIterator");
@@ -336,14 +341,26 @@ public class GC_Helper {
         action.execute();
     } */
 
+    /**
+     *Metodo auxiliar, busca todas as bindings de uma pagina.
+     * @return As bindings
+     */
     public BindingContainer getBindings() {
         return BindingContext.getCurrent().getCurrentBindingsEntry();
     }
 
+    /**
+     * Metodo auxiliar, põe a visibilidade do componente de ciração de um cabeçalho a true.
+     */
     private void makeVisible() {
         this.visibility = true;
     }
 
+    /**
+     *Metodo responsavel por guardar o cabeçalho do curso na base de dados pois na pagina os dados estão a ser inseridos
+     * directamente no XSD
+     * @return Nada.
+     */
     public String Guardar_Cursos() {
         // Add event code here...
         DCBindingContainer bindings = (DCBindingContainer)BindingContext.getCurrent().getCurrentBindingsEntry();
@@ -397,6 +414,10 @@ public class GC_Helper {
         return null;
     }
 
+    /**
+     * Metodo auxiliar, unica maneira que encontrei de auxiliar no depuramento, responsavel por lançar uma janela
+     * com todos os dados guardados neste ficheiro do cabeçalho de um curso
+     */
     private void allData() {
         PrintMessage("IdCurso: " + this.getC_Id_Curso());
         PrintMessage("Curso: " + this.getC_Name());
@@ -410,10 +431,18 @@ public class GC_Helper {
         PrintMessage("Versaofornecedor: " + this.getC_VersaoFornecedor());
     }
 
+    /**
+     * Metodo que quando acopolado a um botão (por exemplo) despoleta a janela de informação
+     * @param Action - O Evento que despoleta a ação
+     */
     public void PrintSavedData(ActionEvent Action) {
         allData();
     }
 
+    /**
+     * Metodo de de depuração, responsavel pela criação e exibição de uma janela com uma mensagem c/ conteudo a definir
+     * @param msg - A mensagem que a janela irá exibir
+     */
     public void PrintMessage(String msg) {
         FacesMessage fm = new FacesMessage(msg);
         fm.setSeverity(FacesMessage.SEVERITY_INFO);
@@ -421,6 +450,10 @@ public class GC_Helper {
         context.addMessage(null, fm);
     }
 
+    /**
+     *Metodo auxiliar, acopolado á dropdown de ações
+     * @param vce - Evento despoletado
+     */
     public void SelectedActions(ValueChangeEvent vce) {
         // Add event code here...
         int selected_action = (Integer)vce.getNewValue();
@@ -439,7 +472,7 @@ public class GC_Helper {
             /*             this.Nova_Versao(); */
             break;
         case 4:
-/*             this.NC_Selecionados(); */
+            /*             this.NC_Selecionados(); */
             break;
         case 5:
             /*             this.Suspender(); */
@@ -450,13 +483,20 @@ public class GC_Helper {
         }
     }
 
+    /**
+     * Os seguintes tres metodos (IDCursoChanged/NomeCursoChanged/VersaoCursoChanged) controlam a visibilidade do botão
+     * Submit que passa a proxima human task, apenas quando um ID, um Nome e uma Versão de um curso estiver definida
+     * é que o botão Submit fica visivel.
+     * 
+     */
+
     public void IDCursoChanged(ValueChangeEvent vce) {
         // Add event code here...
         this.setId_Curso_filled(Boolean.TRUE);
         this.setC_Id_Curso(vce.getNewValue().toString());
         boolean eval = (!(this.getId_Curso_filled() && this.getC_Name_filled() && this.getC_Versao_filled()));
         this.setEvaluation(eval);
-       // allData();
+        // allData();
     }
 
     public void NomeCursoChanged(ValueChangeEvent vce) {
@@ -465,7 +505,7 @@ public class GC_Helper {
         this.setC_Name_filled(Boolean.TRUE);
         boolean eval = (!(this.getId_Curso_filled() && this.getC_Name_filled() && this.getC_Versao_filled()));
         this.setEvaluation(eval);
-      //  allData();
+        //  allData();
     }
 
     public void VersaoCursoChanged(ValueChangeEvent vce) {
@@ -474,50 +514,77 @@ public class GC_Helper {
         this.setC_Versao_filled(Boolean.TRUE);
         boolean eval = (!(this.getId_Curso_filled() && this.getC_Name_filled() && this.getC_Versao_filled()));
         this.setEvaluation(eval);
-     //   allData();
+        //   allData();
     }
 
-
+    /**
+     * Metodo responsavel por copiar a duração para esta classe
+     * @param vce
+     */
     public void Duracao_VCL(ValueChangeEvent vce) {
         // Add event code here...
         this.setC_Duracao(Integer.parseInt(vce.getNewValue().toString()));
-     //   allData();
+        //   allData();
     }
-
+    
+    /**
+     * Metodo responsavel por copiar a descrição para esta classe
+     * @param vce
+     */
     public void DescricaoCursosText(ValueChangeEvent vce) {
         // Add event code here...
         this.setC_Descricao(vce.getNewValue().toString());
-     //   allData();
+        //   allData();
     }
-
+    
+    /**
+     * Metodo responsavel por copiar se o curso é instanciavel para esta classe
+     * @param vce
+     */
     public void InstanciavelCursosBoolean(ValueChangeEvent vce) {
         // Add event code here...
         this.setC_Instanciavel(Boolean.parseBoolean(vce.getNewValue().toString()));
-     //   allData();
+        //   allData();
     }
-
+    
+    /**
+     * Metodo responsavel por copiar se o curso é original para esta classe
+     * @param vce
+     */
     public void OriginalCursosBoolean(ValueChangeEvent vce) {
         // Add event code here...
         this.setC_Original(Boolean.parseBoolean(vce.getNewValue().toString()));
-     //   allData();
+        //   allData();
     }
-
+    
+    /**
+     * Metodo responsavel por copiar o curso é de catalogo para esta classe
+     * @param vce
+     */
     public void CatalogoCursosBoolean(ValueChangeEvent vce) {
         // Add event code here...
         this.setC_Catalogo(Boolean.parseBoolean(vce.getNewValue().toString()));
-     //   allData();
+        //   allData();
     }
     
+    /**
+     * Metodo responsavel por copiar o codigo de fornecedor para esta classe
+     * @param vce
+     */
     public void CodFornecedorCursosText(ValueChangeEvent vce) {
         // Add event code here...
         this.setC_CodFornecedor(vce.getNewValue().toString());
-      //  allData();
+        //  allData();
     }
-
+    
+    /**
+     * Metodo responsavel por copiar a versão do para esta classe
+     * @param vce
+     */
     public void VersaoFornecedorCursosText(ValueChangeEvent vce) {
         // Add event code here...
         this.setC_VersaoFornecedor(vce.getNewValue().toString());
-      //  allData();
+        //  allData();
     }
 
     /**
